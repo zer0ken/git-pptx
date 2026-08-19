@@ -21,6 +21,7 @@ a.git-pptx/
 ## Install
 
 ```bash
+git clone https://github.com/zer0ken/git-pptx.git
 cd git-pptx
 npm link
 ```
