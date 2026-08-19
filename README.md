@@ -11,7 +11,7 @@ PowerPoint(pptx) 파일을 Git에서 **슬라이드 단위로 버전 관리**하
 ## 설치
 
 ```bash
-cd pit
+cd git-pptx
 npm link
 ```
 
