@@ -1,0 +1,19 @@
+{
+  "name": "git-pit",
+  "version": "0.1.0",
+  "description": "Version-control PowerPoint (pptx) files in Git as per-slide files via a git subcommand",
+  "bin": {
+    "git-pit": "bin/git-pit.js",
+    "pit": "bin/git-pit.js"
+  },
+  "main": "lib/index.js",
+  "scripts": {},
+  "license": "MIT",
+  "dependencies": {
+    "@xmldom/xmldom": "^0.9.11",
+    "adm-zip": "^0.5.16"
+  },
+  "engines": {
+    "node": ">=18"
+  }
+}
