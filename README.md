@@ -41,6 +41,7 @@ git pit status
 | `git pit push` | deck을 임시로 unzip → 정규화 비교로 변경 파일 감지 → 변경분만 `slides/`에 반영·커밋·push |
 | `git pit pull` | `git pull` 후 `slides/`를 `deck.pptx`로 rezip |
 | `git pit status` | 변경 슬라이드 목록 출력 |
+| `git pit preview` | PowerPoint COM으로 각 슬라이드를 `preview/slide-NNN.png`로 렌더링·커밋. GitHub 이미지 diff로 리뷰/논의 가능 |
 
 ## 제약
 
