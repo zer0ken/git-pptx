@@ -1,6 +1,6 @@
 {
   "name": "git-pptx",
-  "version": "1.2.0",
+  "version": "1.2.1",
   "description": "Version-control PowerPoint (pptx) files in Git as per-slide files via a git subcommand",
   "bin": {
     "git-pptx": "bin/git-pptx.js",
