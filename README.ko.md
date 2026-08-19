@@ -63,6 +63,12 @@ git-pptx diff a.pptx a.git-pptx
 | `git-pptx comp <dir> <out.pptx>` | `pptx/`를 zip해 `.pptx` 재조립 |
 | `git-pptx diff <deck.pptx> <dir>` | 변경 슬라이드 목록 출력 |
 
+## 출력과 렌더링
+
+- 출력은 **human-friendly + 터미널 중립**입니다. 결과는 stdout에(굵게), 진행은 stderr에(흐리게) 출력되며, 터미널이 아니면 일반 텍스트로 퇴화합니다. `decomp`/`diff`는 변경 슬라이드를 요약 표시하지, 파일을 낱낱이 나열하지 않습니다.
+- 렌더링은 **열려 있는 편집기를 절대 건드리지 않습니다.** 미리보기는 임시 복사본에서 렌더합니다. PowerPoint는 레지스트리/알려진 경로로 감지하며(프로브하려고 COM을 띄우지 않음), 실행 중인 PowerPoint 인스턴스는 절대 종료하지 않습니다(이 도구가 직접 띄운 것만 닫음). LibreOffice headless는 격리된 프로필에서 돌아 실행 중인 LibreOffice 창을 잠그지 않습니다. 진행은 한 줄로 갱신되는 인플레이스 라인(`rendering slide k/N`)입니다.
+- 렌더링은 **크로스 플랫폼**입니다: `powerpoint`(PowerPoint COM, Windows) 또는 `libreoffice`(LibreOffice headless + poppler, 전 OS). 기본 `auto`는 Windows에서 PowerPoint가 있으면 그걸, 아니면 LibreOffice를 씁니다. 렌더러에 따라 미리보기가 다르므로 팀은 `--renderer`로 하나로 통일해야 합니다.
+
 ## GitHub에서 논의하기
 
 `previews/1.jpg, 2.jpg, ...`를 커밋하면 GitHub가 이미지 미리보기와 PR 이미지 diff를 지원하므로, 슬라이드 번호로 지칭하며 인라인 코멘트로 논의할 수 있습니다. `.pptx` 파일은 `.gitignore`에 넣어 커밋하지 않고 `a.git-pptx/`만 푸시합니다.
@@ -72,7 +78,6 @@ git-pptx diff a.pptx a.git-pptx
 - `docProps/core.xml`, `docProps/app.xml`, `docProps/thumbnail.jpeg`는 저장할 때마다 다시 만들어지므로 변경 감지에서 제외됩니다. 다만 폴더에는 그대로 씁니다. 이들을 가리키는 파트는 기록되기 때문에, 대상 파일을 빼면 재조립한 덱을 PowerPoint가 열지 못합니다.
 - 정규화는 재직렬화의 서식 노이즈를 무시하지만, 관계 ID 재번호(r:id)와 기본값 materialization은 아직 다루지 않습니다. 다른 도구가 쓴 덱을 PowerPoint로 처음 저장할 때 몇 개의 파트가 변경으로 보이며, 그다음부터는 잦아듭니다.
 - 파트 이름 정규화는 시험한 모든 덱에서 PowerPoint와 같은 순서를 냈습니다. 다만 SVG 그림과 그 대체 래스터 이미지를 함께 담은 덱에서는 미디어 파트 몇 개의 순서가 달라질 수 있고, 그 경우 PowerPoint가 처음 저장할 때 한 번 이름을 바꿉니다.
-- 미리보기 렌더링은 **크로스 플랫폼**입니다: `libreoffice`(LibreOffice headless + poppler, 전 OS) 또는 `powerpoint`(PowerPoint COM, Windows). 기본 `auto`는 Windows에서 PowerPoint가 있으면 그걸, 아니면 LibreOffice를 씁니다. 렌더러에 따라 미리보기가 다르므로 팀은 `--renderer`로 하나로 통일해야 합니다.
 
 ## 개발
 

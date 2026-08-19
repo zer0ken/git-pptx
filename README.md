@@ -64,6 +64,12 @@ Options:
 | `git-pptx comp <dir> <out.pptx>` | zips `pptx/` back into a `.pptx` |
 | `git-pptx diff <deck.pptx> <dir>` | lists changed slides |
 
+## Output and rendering
+
+- Output is human-friendly and terminal-neutral: results go to stdout (bold), progress to stderr (dim), and styling falls back to plain text when output is not a terminal. `decomp` and `diff` summarize changed slides instead of flat-listing every file.
+- Rendering never touches an open editor. Previews are rendered from a temp copy. PowerPoint is detected via the registry / known paths, never by launching COM just to probe; a running PowerPoint instance is never quit (only an instance this tool started is closed); and LibreOffice runs headless in an isolated profile so an open LibreOffice window is not locked. Progress is a single in-place line (`rendering slide k/N`).
+- Rendering is cross-platform: `powerpoint` (PowerPoint COM, Windows) or `libreoffice` (LibreOffice headless + poppler, all OSes). The default `auto` picks PowerPoint on Windows when available, else LibreOffice. Previews differ between renderers, so a team should standardize on one via `--renderer`.
+
 ## Discussing on GitHub
 
 Committing `previews/1.jpg, 2.jpg, ...` lets GitHub render image previews and PR image diffs, so slides can be referenced by number and discussed with inline comments. Add `*.pptx` to `.gitignore` and push only the `a.git-pptx/` directory.
@@ -73,7 +79,6 @@ Committing `previews/1.jpg, 2.jpg, ...` lets GitHub render image previews and PR
 - `docProps/core.xml`, `docProps/app.xml` and `docProps/thumbnail.jpeg` are regenerated on every save and are excluded from change detection. They are still written to the directory - the parts that point at them are written too, so dropping them would leave the composed deck unopenable.
 - Canonicalization ignores reserialization formatting noise but does not yet handle relationship ID renumbering (`r:id`) or default-value materialization; an unchanged part may appear changed if its relationship ids are renumbered. This shows up on the first PowerPoint save of a deck written by another tool and settles afterwards.
 - Canonical part naming follows PowerPoint's own order for every deck tested, but decks whose pictures pair an SVG with a raster fallback can land on a different order for a few media parts, which PowerPoint renames once on the first save.
-- Preview rendering is cross-platform: `libreoffice` (LibreOffice headless + poppler, all OSes) or `powerpoint` (PowerPoint COM, Windows). The default `auto` picks PowerPoint on Windows when available, else LibreOffice. Previews differ between renderers, so a team should standardize on one via `--renderer`.
 
 ## Development
 
