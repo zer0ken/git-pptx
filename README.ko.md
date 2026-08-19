@@ -44,6 +44,7 @@ git-pptx diff a.pptx a.git-pptx
 옵션:
 - `--no-preview`: 미리보기 렌더 생략
 - `--format png`: 미리보기를 JPG(기본) 대신 PNG로
+- `--renderer auto|powerpoint|libreoffice`: 미리보기 렌더러 선택 (기본 `auto`)
 
 ## 동작 상세
 
@@ -61,7 +62,7 @@ git-pptx diff a.pptx a.git-pptx
 
 - `docProps/core.xml`(타임스탬프 메타데이터)은 매 저장마다 바뀌므로 변경 감지에서 제외됩니다.
 - 정규화는 재직렬화의 서식 노이즈를 무시하지만, 관계 ID 재번호(r:id)와 기본값 materialization은 아직 다루지 않습니다. 동일 슬라이드가 재번호 때문에 변경으로 보일 수 있습니다.
-- 미리보기 렌더링은 Windows의 설치된 PowerPoint COM을 사용합니다.
+- 미리보기 렌더링은 **크로스 플랫폼**입니다: `libreoffice`(LibreOffice headless + poppler, 전 OS) 또는 `powerpoint`(PowerPoint COM, Windows). 기본 `auto`는 Windows에서 PowerPoint가 있으면 그걸, 아니면 LibreOffice를 씁니다. 렌더러에 따라 미리보기가 다르므로 팀은 `--renderer`로 하나로 통일해야 합니다.
 
 ## 개발
 

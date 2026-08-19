@@ -45,6 +45,7 @@ Options:
 
 - `--no-preview`: skip preview rendering
 - `--format png`: render previews as PNG instead of JPG (default)
+- `--renderer auto|powerpoint|libreoffice`: choose the preview renderer (default `auto`)
 
 ## Behavior
 
@@ -62,7 +63,7 @@ Committing `previews/1.jpg, 2.jpg, ...` lets GitHub render image previews and PR
 
 - `docProps/core.xml` (timestamp metadata) changes on every save and is excluded from change detection.
 - Canonicalization ignores reserialization formatting noise but does not yet handle relationship ID renumbering (`r:id`) or default-value materialization; an unchanged slide may appear changed if it is renumbered.
-- Preview rendering uses the installed PowerPoint via COM (Windows).
+- Preview rendering is cross-platform: `libreoffice` (LibreOffice headless + poppler, all OSes) or `powerpoint` (PowerPoint COM, Windows). The default `auto` picks PowerPoint on Windows when available, else LibreOffice. Previews differ between renderers, so a team should standardize on one via `--renderer`.
 
 ## Development
 
