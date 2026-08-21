@@ -26,6 +26,7 @@ git-pptx diff a.pptx a.git-pptx     # 변경 슬라이드 표시 (쓰기 없이)
 
 ```
 a.git-pptx/
+  .gitattributes                  XML 파트의 diff 규칙
   previews/   1.jpg, 2.jpg, ...   슬라이드별 미리보기(파생 산출물)
   pptx/       pptx를 압축 해제한 원본
 ```
@@ -41,6 +42,16 @@ a.git-pptx/
 - 결과는 stdout(굵게), 진행은 stderr(흐리게)로 출력되며, 터미널이 아니면 일반 텍스트로 퇴화합니다. `decomp`/`diff`는 변경 슬라이드를 요약 표시합니다.
 - 렌더링은 열려 있는 편집기를 건드리지 않습니다: 미리보기는 임시 복사본에서 렌더하고, 실행 중 PowerPoint는 종료하지 않으며, LibreOffice는 격리된 프로필에서 돕니다.
 - 렌더러: `powerpoint`(COM, Windows) 또는 `libreoffice`(headless + poppler, 전 OS). `auto`는 Windows에서 PowerPoint가 있으면 그걸 씁니다. 렌더러에 따라 미리보기가 다르므로 `--renderer`로 통일하세요.
+
+## 읽을 수 있는 diff
+
+PowerPoint는 XML 파트를 한 줄로 저장하므로, 어떤 편집이든 git에는 약 150KB짜리 한 줄이 다른 한 줄로 바뀐 것으로 보입니다. `decomp`는 그 파트들을 diff 드라이버로 보내고 줄바꿈 변환에서 제외하는 `a.git-pptx/.gitattributes`를 씁니다. 드라이버 자체는 커밋할 수 없는 git config 설정이므로, clone마다 한 번 켜야 합니다.
+
+```bash
+git config diff.pptxml.textconv "git-pptx textconv"
+```
+
+저장된 바이트는 그대로 유지됩니다. 줄바꿈은 git이 보여주는 화면에만 존재하고, 인접한 태그 사이에만 들어가므로 `<a:t>` 안의 텍스트는 파트가 가진 공백을 그대로 지킵니다.
 
 ## GitHub에서 논의하기
 
