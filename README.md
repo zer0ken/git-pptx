@@ -26,7 +26,9 @@ git-pptx diff a.pptx a.git-pptx     # show changed slides without writing
 
 ```
 a.git-pptx/
-  previews/   1.jpg, 2.jpg, ...   per-slide previews (derived)
+  .gitattributes            diff rules for the XML parts
+  previews/   1.jpg, ...    per-slide previews (derived)
+              index.json    what each preview was rendered from
   pptx/       the pptx in unpacked form
 ```
 
@@ -41,7 +43,18 @@ Options:
 
 - Results go to stdout (bold), progress to stderr (dim); plain text when not a terminal. `decomp`/`diff` summarize changed slides.
 - Rendering never touches an open editor: previews are rendered from a temp copy, a running PowerPoint is never quit, and LibreOffice runs in an isolated profile.
+- A preview is rendered again when its slide no longer matches the content the preview was rendered from, which `previews/index.json` records. Editing a part, `comp`, then `decomp` refreshes exactly the slides that changed, even though the pptx and the directory agree at that point.
 - Renderer: `powerpoint` (COM, Windows) or `libreoffice` (headless + poppler, all OSes). `auto` picks PowerPoint on Windows when available. Previews differ between renderers; standardize with `--renderer`.
+
+## Readable diffs
+
+PowerPoint stores each XML part on a single line, so git shows any edit as one ~150 KB line replaced by another. `decomp` writes an `a.git-pptx/.gitattributes` that routes those parts through a diff driver and keeps them out of end-of-line conversion. The driver itself is a git config setting, which cannot be committed, so each clone enables it once:
+
+```bash
+git config diff.pptxml.textconv "git-pptx textconv"
+```
+
+The stored bytes stay verbatim. The line breaks exist only in what git renders, and only between adjacent tags, so the text inside `<a:t>` keeps the exact spacing the part holds.
 
 ## Discussing on GitHub
 
