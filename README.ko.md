@@ -26,8 +26,9 @@ git-pptx diff a.pptx a.git-pptx     # 변경 슬라이드 표시 (쓰기 없이)
 
 ```
 a.git-pptx/
-  .gitattributes                  XML 파트의 diff 규칙
-  previews/   1.jpg, 2.jpg, ...   슬라이드별 미리보기(파생 산출물)
+  .gitattributes            XML 파트의 diff 규칙
+  previews/   1.jpg, ...    슬라이드별 미리보기(파생 산출물)
+              index.json    각 미리보기를 렌더한 내용의 지문
   pptx/       pptx를 압축 해제한 원본
 ```
 
@@ -41,6 +42,7 @@ a.git-pptx/
 
 - 결과는 stdout(굵게), 진행은 stderr(흐리게)로 출력되며, 터미널이 아니면 일반 텍스트로 퇴화합니다. `decomp`/`diff`는 변경 슬라이드를 요약 표시합니다.
 - 렌더링은 열려 있는 편집기를 건드리지 않습니다: 미리보기는 임시 복사본에서 렌더하고, 실행 중 PowerPoint는 종료하지 않으며, LibreOffice는 격리된 프로필에서 돕니다.
+- 미리보기는 자신이 렌더된 내용과 슬라이드가 더 이상 일치하지 않을 때 다시 렌더됩니다. 그 기준은 `previews/index.json`에 기록됩니다. 파트를 편집하고 `comp`한 뒤 `decomp`하면 그 시점에 pptx와 디렉터리가 서로 같아도 바뀐 슬라이드만 정확히 갱신됩니다.
 - 렌더러: `powerpoint`(COM, Windows) 또는 `libreoffice`(headless + poppler, 전 OS). `auto`는 Windows에서 PowerPoint가 있으면 그걸 씁니다. 렌더러에 따라 미리보기가 다르므로 `--renderer`로 통일하세요.
 
 ## 읽을 수 있는 diff

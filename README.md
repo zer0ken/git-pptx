@@ -26,8 +26,9 @@ git-pptx diff a.pptx a.git-pptx     # show changed slides without writing
 
 ```
 a.git-pptx/
-  .gitattributes                  diff rules for the XML parts
-  previews/   1.jpg, 2.jpg, ...   per-slide previews (derived)
+  .gitattributes            diff rules for the XML parts
+  previews/   1.jpg, ...    per-slide previews (derived)
+              index.json    what each preview was rendered from
   pptx/       the pptx in unpacked form
 ```
 
@@ -42,6 +43,7 @@ Options:
 
 - Results go to stdout (bold), progress to stderr (dim); plain text when not a terminal. `decomp`/`diff` summarize changed slides.
 - Rendering never touches an open editor: previews are rendered from a temp copy, a running PowerPoint is never quit, and LibreOffice runs in an isolated profile.
+- A preview is rendered again when its slide no longer matches the content the preview was rendered from, which `previews/index.json` records. Editing a part, `comp`, then `decomp` refreshes exactly the slides that changed, even though the pptx and the directory agree at that point.
 - Renderer: `powerpoint` (COM, Windows) or `libreoffice` (headless + poppler, all OSes). `auto` picks PowerPoint on Windows when available. Previews differ between renderers; standardize with `--renderer`.
 
 ## Readable diffs
