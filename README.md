@@ -2,7 +2,11 @@
 
 [한국어 (Korean)](README.ko.md)
 
-Version-control PowerPoint (`.pptx`) files per slide as a git-friendly directory. It is standalone and does not couple to git or GitHub operations: `decomp`/`comp` convert between a pptx and the `a.git-pptx/` directory format. Publish the result with ordinary git.
+Git sees a pptx as one binary file. Whether you fix a typo on one slide or rebuild the deck from scratch, the diff is a single `Binary files differ` line, and there is no way to tell what changed.
+
+`decomp` solves this by unpacking the pptx into a directory. A pptx is a zip holding one XML file per slide, so once it is unpacked git produces a text diff per slide. `decomp` also stores a rendered image of each changed slide, so a GitHub pull request shows those slides as images.
+
+Edit the pptx file, then call `decomp` before committing to keep the changes trackable.
 
 ## Install
 
@@ -14,54 +18,76 @@ npm link
 
 `npm link` exposes the `git-pptx` executable on PATH.
 
-## Usage
+## Use
+
+`git-pptx decomp` unpacks a pptx into a directory named after the deck with a `.git-pptx` suffix. Pass `a.pptx` and you get `a.git-pptx/`.
 
 ```bash
-git-pptx decomp a.pptx              # a.pptx -> a.git-pptx/ (update changed slides, render previews)
-git-pptx comp a.git-pptx out.pptx   # a.git-pptx/ -> pptx
-git-pptx diff a.pptx a.git-pptx     # show changed slides without writing
+git-pptx decomp a.pptx
+git add a.pptx a.git-pptx && git commit
 ```
 
-`decomp` unzips `a.pptx` into `a.git-pptx/` (layout below), renames numbered parts to the dense 1..N sequence PowerPoint uses, and detects only slides whose real content changed. `comp` re-zips `pptx/` back.
+Commit the pptx and the git-pptx directory together. Whoever clones the repository opens the pptx to edit it, and reads the git-pptx directory to see what a commit changed.
 
+`decomp` updates only the files that changed. Modify three slides and only three are reflected in the git-pptx directory, with three previews rendered again.
+
+`comp` is the reverse conversion. When the XML under `pptx/` has been edited directly, it packs the result back into a pptx.
+
+```bash
+git-pptx comp a.git-pptx a.pptx
 ```
-a.git-pptx/
-  .gitattributes            diff rules for the XML parts
-  previews/   1.jpg, ...    per-slide previews (derived)
-              index.json    what each preview was rendered from
-  pptx/       the pptx in unpacked form
-```
 
-Options:
+## Meaningful diffs
 
-- `--no-preview`: skip preview rendering
-- `--format png`: previews as PNG instead of JPG (default)
-- `--renderer auto|powerpoint|libreoffice`: preview renderer (default `auto`)
-- `--no-normalize`: keep the part names the deck came with
-
-## Output and rendering
-
-- Results go to stdout (bold), progress to stderr (dim); plain text when not a terminal. `decomp`/`diff` summarize changed slides.
-- Rendering never touches an open editor: previews are rendered from a temp copy, a running PowerPoint is never quit, and LibreOffice runs in an isolated profile.
-- A preview is rendered again when its slide no longer matches the content the preview was rendered from, which `previews/index.json` records. Editing a part, `comp`, then `decomp` refreshes exactly the slides that changed, even though the pptx and the directory agree at that point.
-- Renderer: `powerpoint` (COM, Windows) or `libreoffice` (headless + poppler, all OSes). `auto` picks PowerPoint on Windows when available. Previews differ between renderers; standardize with `--renderer`.
-
-## Readable diffs
-
-PowerPoint stores each XML part on a single line, so git shows any edit as one ~150 KB line replaced by another. `decomp` writes an `a.git-pptx/.gitattributes` that routes those parts through a diff driver and keeps them out of end-of-line conversion. The driver itself is a git config setting, which cannot be committed, so each clone enables it once:
+PowerPoint writes each XML part on a single line. Unpacking alone leaves the diff as one ~150 KB line. Registering a diff driver once per clone makes git break that line apart at tag boundaries.
 
 ```bash
 git config diff.pptxml.textconv "git-pptx textconv"
 ```
 
-The stored bytes stay verbatim. The line breaks exist only in what git renders, and only between adjacent tags, so the text inside `<a:t>` keeps the exact spacing the part holds.
+The `.gitattributes` that `decomp` generates hands the XML parts to that driver. Registering the driver is a git config setting and cannot be committed, so it has to be repeated in every clone.
 
-## Discussing on GitHub
+The driver adds line breaks only to what git prints. The bytes stored in the file do not change, and breaks go only between tags, so whitespace inside `<a:t>` is preserved.
 
-Commit `previews/` so GitHub renders image previews and PR image diffs. Add `*.pptx` to `.gitignore` and push only `a.git-pptx/`.
+## Commands
+
+```bash
+git-pptx decomp a.pptx              # a.pptx -> a.git-pptx/
+git-pptx diff a.pptx a.git-pptx     # report changes only, write nothing
+git-pptx comp a.git-pptx out.pptx   # a.git-pptx/ -> pptx
+```
+
+The git-pptx directory is laid out like this:
+
+```
+a.git-pptx/
+  .gitattributes            diff rules for the XML parts
+  previews/   1.jpg, ...    per-slide previews
+              index.json    slide hashes each preview was rendered from
+  pptx/       the pptx in unpacked form
+```
+
+`decomp` options:
+
+- `--no-preview`: skip preview rendering
+- `--format png`: previews as PNG instead of JPG
+- `--renderer auto|powerpoint|libreoffice`: pick the renderer (default `auto`)
+- `--no-normalize`: keep part names as they are
+
+`decomp` normalizes part names by default. A deck generated by a script, or split out of a larger deck, has gaps in its part numbers, and PowerPoint renumbers them to a dense 1..N on its first save. Without normalizing beforehand, that single save renames every part and the whole git-pptx directory registers as changed.
+
+## Rendering
+
+`decomp` renders previews with `powerpoint` (COM, Windows) or `libreoffice` (headless + poppler, all OSes). `auto` uses PowerPoint when it is installed on Windows. The two renderers do not produce identical output, so fix one with `--renderer` in a repository several people commit to.
+
+Running `decomp` while the deck is open is safe. It renders from a temp copy, never quits a running PowerPoint, and runs LibreOffice in a separate profile.
+
+`previews/index.json` holds the hash of the slide XML each preview was rendered from. `decomp` compares that hash against the current slide and renders again only the slides that differ. It does not compare the pptx against the git-pptx directory, so a slide edited under `pptx/` and packed with `comp` still gets its preview updated.
+
+`decomp` writes results to stdout and progress to stderr. Output drops color when it is not a terminal.
 
 ## Limitations
 
-- `docProps/core.xml`, `docProps/app.xml`, `docProps/thumbnail.jpeg` are regenerated on every save and excluded from change detection (still written so `comp` stays valid).
-- Canonicalization ignores reserialization noise but not relationship ID renumbering (`r:id`); an unchanged part can look changed after the first PowerPoint save of a foreign-written deck.
-- SVG+raster decks may have a few media parts renamed once on the first save.
+- `docProps/core.xml`, `docProps/app.xml`, and `docProps/thumbnail.jpeg` are regenerated by PowerPoint on every save. `decomp` keeps them out of change detection to suppress that diff noise, and still writes them to the git-pptx directory so `comp` can produce a valid pptx.
+- Relationship IDs (`r:id`) are renumbered into PowerPoint's own order the first time it saves a deck written by another tool. Slides with identical content register as changed and their previews are rendered again. Canonicalization does not reach this, so there is no way to prevent it. It does not recur on later saves.
+- A deck mixing SVG and raster images has a few media parts renamed by PowerPoint on its first save. It happens once, but that commit carries the renames as diff noise, and there is no way to prevent it either.
